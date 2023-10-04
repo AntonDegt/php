@@ -22,3 +22,12 @@
 
 # Домашне завдання №3
 
+- оновлення (перезавнтаження) сторінки після успішної авторизації
+- введення логіну і паролю в модальному вікні
+- роботу кнопки "вихід" (logout) за аналогію з login: передати запит на /auth але іншим методом або з іншими параметрами за його результатом оновити сторінку
+
+![image](https://github.com/AntonDegt/php/assets/108671823/854612ea-63ac-489e-b10b-58f03ab5a0ad)
+![image](https://github.com/AntonDegt/php/assets/108671823/c16b5039-b27e-4edb-a7f2-dd8a1a8c4a82)
+![image](https://github.com/AntonDegt/php/assets/108671823/66ef2373-0154-4257-af8b-58abd41071a5)![image](https://github.com/AntonDegt/php/assets/108671823/107a89b2-a85e-4f88-b741-ed6cbad20fc7)
+
+
