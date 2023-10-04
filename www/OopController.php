@@ -29,8 +29,9 @@ class OopController {
 	}
 	
 	private function do_get() {
-		$this->log_error( __METHOD__ . "#" . __LINE__ . " GET request detected" ) ;
+		//$this->log_error( __METHOD__ . "#" . __LINE__ . " GET request detected" ) ;
 		$page =  'OopView.php' ;
+		global $_CONTEXT;
 		include '_layout.php' ;
 	}
 	

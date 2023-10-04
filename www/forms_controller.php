@@ -3,7 +3,12 @@ $name_class = "validate" ;
 $reg_name = "" ;
 $lastname_class = "validate" ;
 $reg_lastname = "" ;
-if( $_SERVER[ 'REQUEST_METHOD' ] == 'POST' ) { 
+
+
+
+
+if( $_SERVER[ 'REQUEST_METHOD' ] == 'POST' )
+{	
 	// оброблення даних форми
 	// echo '<pre>' ; print_r( $_POST ) ; exit ;
 	// етап 1 - валідація
@@ -24,6 +29,24 @@ if( $_SERVER[ 'REQUEST_METHOD' ] == 'POST' ) {
 		$reg_lastname = $_POST[ 'reg-lastname' ] ;
 		if( strlen( $reg_name ) < 2 ) {
 			$lastname_message = "Login too short" ;
+		}
+		else
+		{
+			$sql = <<<TXT
+				SELECT login FROM users WHERE login = '{$reg_lastname}'
+			TXT;
+			try 
+			{
+
+				$sth = $db->query($sql);
+				$rows = $sth->fetchAll();
+
+				if (count($rows) > 0)
+					$lastname_message = "Login used";
+			}
+			catch( PDOException $ex ) {
+
+			}
 		}
 	}
 	
@@ -64,35 +87,49 @@ if( $_SERVER[ 'REQUEST_METHOD' ] == 'POST' ) {
 			) ;
 		 }
 	}
-// змінна $db встановлюється у диспетчері доступу і доступна тут
-if( empty( $db ) ) {
-	echo 'Server error' ;
-	exit ;
-}
-// TODO: перевірити унікальність логіну
-$salt = substr( md5( uniqid() ), 0, 16 ) ;
-$dk = sha1( $salt . md5( $_POST[ 'reg-phone' ] ) ) ;
-$email = empty( $_POST[ 'reg-email' ] ) 
-	? "NULL" 
-	: "'{$_POST['reg-email']}'" ;
+	// змінна $db встановлюється у диспетчері доступу і доступна тут
+	if( empty( $db ) ) {
+		echo 'Server error' ;
+		exit ;
+	}
+
+
+	$salt = substr( md5( uniqid() ), 0, 16 ) ;
+	$dk = sha1( $salt . md5( $_POST[ 'reg-phone' ] ) ) ;
+	$email = empty( $_POST[ 'reg-email' ] ) 
+		? "NULL" 
+		: "'{$_POST['reg-email']}'" ;
+		
+	$avatar = empty( $uniqueFileName ) 
+		? "NULL" 
+		: "'{$uniqueFileName}'" ;
 	
-$avatar = empty( $uniqueFileName ) 
-	? "NULL" 
-	: "'{$uniqueFileName}'" ;
-	
-$sql = <<<TXT
-INSERT INTO users(`id`,`login`,`salt`,`pass_dk`,`name`,`email`,`avatar`)
-VALUES( UUID_SHORT(), '{$reg_lastname}', '{$salt}', '{$dk}', 
-		'{$reg_name}', {$email}, {$avatar} )	
-TXT;
-try {
-	$db->query( $sql ) ;
-	$_SESSION[ 'reg_db'  ] = true ;
-}
-catch( PDOException $ex ) {
-	// TODO: log ex and return false
-	$_SESSION[ 'reg_db'  ] = $ex->getMessage() ;
-}
+
+	if( !isset( $_SESSION[ 'name_message' ]) &&
+		!isset( $_SESSION[ 'lastname_message' ]))
+	{
+
+
+		$sql = <<<TXT
+		INSERT INTO users(`id`,`login`,`salt`,`pass_dk`,`name`,`email`,`avatar`)
+		VALUES( UUID_SHORT(), '{$reg_lastname}', '{$salt}', '{$dk}', 
+				'{$reg_name}', {$email}, {$avatar} )	
+		TXT;
+		
+
+		try {
+			$sth = $db->query( $sql ) ;
+			$_SESSION[ 'reg_db'  ] = true ;
+		}
+		catch( PDOException $ex ) {
+			// TODO: log ex and return false
+			$_SESSION[ 'reg_db'  ] = $ex->getMessage() ;
+		}
+	}
+	else
+	{
+		$_SESSION[ 'reg_db'  ] =  false;
+	}
 // echo $sql ; exit;	
 	// echo '<pre>' ; print_r( $_FILES ) ; exit ;
 	/*
@@ -115,12 +152,14 @@ else {  // запит методом GET
 	// перевіряємо, чи є дані у сесії
 	// session_start() ;   // включення сесії - перенесено у диспетчер доступу
 	if( isset( $_SESSION[ 'form_data' ] ) ) {
+
 		// Загальна успішність:
 		if( $_SESSION[ 'reg_db' ] !== true ) {
 			$db_message = $_SESSION[ 'reg_db' ] ;
 		}
 		else {
 			$db_message = "INSERT OK" ;
+			header("Refresh:0");
 		}
 		// є передача даних, перевіряємо повідомлення
 		if( isset( $_SESSION[ 'name_message' ] ) ) { 
